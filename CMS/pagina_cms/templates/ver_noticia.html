@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block cuerpo %}
+<div class="untree_co-section pb-0">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-7 text-center mx-auto">
+                <h2 class="section-heading gsap-reveal-hero mb-0"><strong>Sección de Noticias</strong></h2>
+                <p class="gsap-reveal-hero">Disfrute de su visita.</p>
+                <div class="wave gsap-reveal-hero">
+                    <svg>
+                        <path d="M10,10 L50,100 L90,50" stroke="#0389ff"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <ul>
+            <li><a href="{% url 'salir' %}">Salir</a></li>
+            <li><a href="{% url 'acceder' %}">Inicio</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="untree_co-section pb-0" id="about-section">
+    <div class="container">
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show mb-4" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% for noticia in contex %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title">{{ noticia.titulo }}</h5>
+                            {% if nivel_usuario == 'ADMINISTRADOR' or nivel_usuario == 'EDITOR' %}
+                            <div>
+                                <a href="{% url 'modnoticia' id=noticia.id %}" class="btn btn-warning btn-xs">Modificar</a>
+                                <a href="{% url 'bornoticia' id=noticia.id %}" class="btn btn-danger btn-xs">Borrar</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if noticia.imagen %}
+                        <img src="/media/imagenes/{{ noticia.imagen }}" class="mb-3" style="max-width: 400px;">
+                        {% endif %}
+                        <p class="card-text">Autor: {{ noticia.autor.nombre }}</p>
+                        <p class="card-text">Fecha: {{ noticia.fecha }}</p>
+                        <p class="card-text">Grupo: {{ noticia.grupo.grupo }}</p>
+                        <p class="card-text">{{ noticia.cuerpo }}</p>
+
+                        <!-- Formulario de comentario -->
+                        <div id="about-section">
+                            <form method="post" action="{% url 'nuecomen' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="noticia_id" value="{{ noticia.id }}">
+                                <div class="form-group">
+                                    <textarea name="cuerpo" class="form-control" placeholder="Escribe un comentario"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm" style="border-radius: 5px;">Comentar</button>
+                            </form>
+                        </div>
+
+                        <!-- Mostrar comentarios asociados -->
+                        <div class="owl-carousel owl-3-slider mt-4">
+                            {% for comentario in noticia.comentarios %}
+                            <div class="item">
+                                <p>{{ comentario.fecha }}</p>
+                                <p>{{ comentario.autor.nombre }}</p>
+                                <p>{{ comentario.cuerpo }}</p>
+                                {% if nivel_usuario == 'ADMINISTRADOR' or nivel_usuario == 'EDITOR' %}
+                                <div class="d-flex justify-content-end">
+                                    <form action="{% url 'borcomen' comentario.id %}" method="post" class="mr-2">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                    </form>
+                                    <form method="post" action="{% url 'modcomen' comentario.id %}">
+                                        {% csrf_token %}
+                                        {% if comentario.visible == 'SI' %}
+                                          <button type="submit" name="visible" value="NO" class="btn btn-primary btn-xs" style="border-radius: 5px;">Ocultar</button>
+                                        {% else %}
+                                          <button type="submit" name="visible" value="SI" class="btn btn-success btn-xs" style="border-radius: 5px;">Visible</button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <div class="item">No hay comentarios aún.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
